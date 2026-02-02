@@ -4,9 +4,8 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 from datetime import datetime
 import hashlib
 import json
@@ -20,10 +19,8 @@ SUPABASE_KEY = os.getenv('SUPABASE_KEY')
 TABLE_NAME = 'nursing_schedule'
 
 # Email configuration
-SMTP_SERVER = os.getenv('SMTP_SERVER', 'smtp.gmail.com')
-SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 SENDER_EMAIL = os.getenv('SENDER_EMAIL')
-SENDER_PASSWORD = os.getenv('SENDER_PASSWORD')
 RECIPIENT_EMAIL = os.getenv('RECIPIENT_EMAIL')
 
 def extract_schedule_table():
@@ -121,25 +118,26 @@ def update_supabase(supabase: Client, new_df):
         return False
 
 def send_email_notification(subject, body):
-    """Send email notification about changes"""
-    if not all([SENDER_EMAIL, SENDER_PASSWORD, RECIPIENT_EMAIL]):
+    """Send email notification about changes using SendGrid"""
+    if not all([SENDGRID_API_KEY, SENDER_EMAIL, RECIPIENT_EMAIL]):
         print("Email configuration not complete. Skipping email notification.")
+        print(f"  - SendGrid API Key: {'✓' if SENDGRID_API_KEY else '✗'}")
+        print(f"  - Sender Email: {'✓' if SENDER_EMAIL else '✗'}")
+        print(f"  - Recipient Email: {'✓' if RECIPIENT_EMAIL else '✗'}")
         return False
     
     try:
-        msg = MIMEMultipart()
-        msg['From'] = SENDER_EMAIL
-        msg['To'] = RECIPIENT_EMAIL
-        msg['Subject'] = subject
+        message = Mail(
+            from_email=SENDER_EMAIL,
+            to_emails=RECIPIENT_EMAIL,
+            subject=subject,
+            html_content=body
+        )
         
-        msg.attach(MIMEText(body, 'html'))
+        sg = SendGridAPIClient(SENDGRID_API_KEY)
+        response = sg.send(message)
         
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SENDER_EMAIL, SENDER_PASSWORD)
-            server.send_message(msg)
-        
-        print("✓ Email notification sent successfully")
+        print(f"✓ Email notification sent successfully (Status: {response.status_code})")
         return True
     except Exception as e:
         print(f"Error sending email: {e}")
