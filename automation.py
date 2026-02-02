@@ -307,21 +307,25 @@ if __name__ == "__main__":
         old_hash = get_data_hash(old_df) if not old_df.empty else ""
         
         if new_hash != old_hash:
-            print("   ✓ Changes detected!")
+            print("   ✓ Data difference detected - checking for actual changes...")
             changes = compare_dataframes(old_df, new_df)
             print(f"     - New entries: {len(changes['added'])}")
             print(f"     - Removed entries: {len(changes['removed'])}")
             
-            # Update Supabase
-            print("\n5. Updating Supabase...")
-            if update_supabase(supabase, new_df):
-                # Send email notification
-                print("\n6. Sending email notification...")
-                email_subject = f"Schedule Update Alert - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-                email_body = format_email_body(changes, new_df)
-                send_email_notification(email_subject, email_body)
+            # Only update and notify if there are actual row changes
+            if len(changes['added']) > 0 or len(changes['removed']) > 0:
+                # Update Supabase
+                print("\n5. Updating Supabase...")
+                if update_supabase(supabase, new_df):
+                    # Send email notification
+                    print("\n6. Sending email notification...")
+                    email_subject = f"Schedule Update Alert - {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+                    email_body = format_email_body(changes, new_df)
+                    send_email_notification(email_subject, email_body)
+                else:
+                    print("✗ Failed to update Supabase")
             else:
-                print("✗ Failed to update Supabase")
+                print("   ✓ No actual row changes detected - skipping update and notification")
         else:
             print("   ✓ No changes detected - data is up to date")
         
