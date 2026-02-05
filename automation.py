@@ -27,7 +27,7 @@ def extract_schedule_table():
     """
     Extract the CPD Schedule table from Maharashtra Nursing Council website
     """
-    url = "https://www.maharashtranursingcouncil.org/ScheduleCNE.aspx"
+    url = "http://cpd.maharashtranursingcouncil.org/ScheduleCNE.aspx"
     
     try:
         # Send GET request
