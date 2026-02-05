@@ -219,7 +219,7 @@ def format_email_body(changes, new_df):
             <h2>Maharashtra Nursing Council Schedule Update</h2>
             <p><strong>Update Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             <p><strong>Total Records:</strong> {len(new_df)}</p>
-            <p><strong>Website:</strong> <a href="https://www.maharashtranursingcouncil.org/CNE/CNELogin.aspx">https://www.maharashtranursingcouncil.org/CNE/CNELogin.aspx</a></p>
+            <p><strong>Website:</strong> <a href="http://cpd.maharashtranursingcouncil.org/CNE/CNELogin.aspx">http://cpd.maharashtranursingcouncil.org/CNE/CNELogin.aspx</a></p>
             <hr>
     """
     
